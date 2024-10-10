@@ -12,7 +12,7 @@ const hashMap = function()  {
        
     const primeNumber = 31;
     for (let i = 0; i < key.length; i++) {
-      hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % 16
+      hashCode = (primeNumber * hashCode + key.charCodeAt(i)) % capacity
     }
     return hashCode;
   }
@@ -36,20 +36,83 @@ const hashMap = function()  {
     }
    
     /* lastly check the current load of our hashmap and double the size if needs be */
-    if (amountOfEntries > (capacity * loadFactor)) doubleArraySize(hashmap)
+    if (amountOfEntries > (capacity * loadFactor)) {
+      let reHashMap = new Array(hashmap.length*2)
+      capacity = reHashMap.length
+      hashmap = insertNodes(hashmap, reHashMap, hash)
+    }
    
   }
 
   function get(key) {
 
+    let hashKey = hash(key)
+    let foundVal = null
+   
+    function recurseBucket(node, key) {
+      if (node.nodeKey == key) {
+        foundVal = node.nodeValue
+        return
+      } else recurseBucket(node.nextNode, key)
+    }
+   
+    if (hashmap[hashKey] == undefined) return foundVal
+   
+    recurseBucket(hashmap[hashKey], key)
+
+    return foundVal
   }
 
   function has(key) {
 
+    let hashKey = hash(key)
+    let found = false
+   
+    function recurseBucket(node, key) {
+      if (node.nodeKey == key) {
+        found = true
+        return
+      } else recurseBucket(node.nextNode, key)
+    }
+   
+    if (hashmap[hashKey] == undefined) return found
+   
+    recurseBucket(hashmap[hashKey], key)
+
+    return found
   }
 
   function remove(key) {
 
+    let hashKey = hash(key)
+   
+    // first check if the corresponding bucket of the key is empty
+    if (hashmap[hashKey] == undefined) return false
+   
+    /* then check if the corresponding bucket only contains one
+       entry. If so, check if that matches with our key and delete entry. */
+    if (hashmap[hashKey].nodeKey == key && hashmap[hashKey].nextNode == null) {
+      hashmap[hashKey] = undefined
+      return true
+    }
+   
+    //otherwise, loop over the bucket
+    let target = hashmap[hashKey]
+    while (target.nextNode !== null) {
+      if (target.nextNode.nodeKey == key) {
+        if (target.nextNode.nextNode !== null) {
+          target.nextNode = target.nextNode.nextNode
+            return true
+        } else if (target.nextNode.nextNode == null && target.nextNode.nodeKey == key) {
+            target.nextNode = null
+            return true
+          }
+       
+      } else target = target.nextNode
+    }
+   
+    //got to end and no key was matched, so return false
+    return false
   }
 
   function length() {
@@ -58,6 +121,7 @@ const hashMap = function()  {
 
   function clear() {
     hashmap = new Array(16)
+    amountOfEntries = 0
   }
 
   function keys() {
@@ -161,13 +225,27 @@ const traverseCompare = function(obj, newNode) {
   }
 }
 
-const doubleArraySize = function(hashmap) {
-  const reHashMap = new Array(hashmap.length*2)
+const insertNodes = function(hashmap, reHashMap, hash) {
   for (let entry of hashmap) {
-    if (typeof entry == 'string') {
-      let entry = hash(entry)
-    }
-  }
+    if (entry !== undefined) {
+      // check if entry's nextNode is null and if so, we don't need to iterate over nested object
+      if (entry.nextNode == null) {
+        let index = hash(entry.nodeKey)
+        reHashMap[index] = entry
+      } else {
+        let target = entry
+        while (target.nextNode !== null) {
+          let index = hash(target.nodeKey)
+          reHashMap[index] = target
+          target = target.nextNode
+        
+        } 
+        let index = hash(target.nodeKey)
+        reHashMap[index] = target
+      }
+    } 
+
+  } return reHashMap
 }
 
 /*if (index < 0 || index >= buckets.length) {
@@ -175,15 +253,15 @@ const doubleArraySize = function(hashmap) {
 }*/
 
 const test = new hashMap()
-test.set('elppa', 'red')
+/* test.set('elppa', 'red')
 test.set('apple', 'red')
 test.set('apple', 'yellow')
 test.set('leapp', 'red')
 console.log(test.keys())
 console.log(test.values())
-console.log(test.entries())
+console.log(test.entries()) */
 
-/* test.set('apple', 'red')
+test.set('apple', 'red')
 test.set('banana', 'yellow')
 test.set('carrot', 'orange')
 test.set('dog', 'brown')
@@ -195,4 +273,7 @@ test.set('ice cream', 'white')
 test.set('jacket', 'blue')
 test.set('kite', 'pink')
 test.set('lion', 'golden')
-test.set('moon', 'silver') */
+
+test.set('moon', 'silver')
+
+console.log(test.has('hat'))
