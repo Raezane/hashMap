@@ -89,21 +89,26 @@ const hashMap = function()  {
     // first check if the corresponding bucket of the key is empty
     if (hashmap[hashKey] == undefined) return false
    
-    /* then check if the corresponding bucket only contains one
-       entry. If so, check if that matches with our key and delete entry. */
-    if (hashmap[hashKey].nodeKey == key && hashmap[hashKey].nextNode == null) {
-      hashmap[hashKey] = undefined
+    /* then check if the corresponding bucket only contains one or two
+       entries. If so, check if that matches with our key and delete entry. */
+    if (hashmap[hashKey].nodeKey == key) {
+      if (hashmap[hashKey].nextNode == null) {
+        hashmap[hashKey] = undefined
+      } else {
+        hashmap[hashKey] = hashmap[hashKey].nextNode
+      }
       return true
     }
+
    
-    //otherwise, loop over the bucket
+    //otherwise, loop over the bucket if more than two entries in same bucket
     let target = hashmap[hashKey]
     while (target.nextNode !== null) {
       if (target.nextNode.nodeKey == key) {
         if (target.nextNode.nextNode !== null) {
           target.nextNode = target.nextNode.nextNode
             return true
-        } else if (target.nextNode.nextNode == null && target.nextNode.nodeKey == key) {
+        } else {
             target.nextNode = null
             return true
           }
@@ -233,6 +238,7 @@ const insertNodes = function(hashmap, reHashMap, hash) {
         let index = hash(entry.nodeKey)
         reHashMap[index] = entry
       } else {
+        //otherwise, we have a nested linked list which we need to iterate on
         let target = entry
         while (target.nextNode !== null) {
           let index = hash(target.nodeKey)
@@ -240,6 +246,7 @@ const insertNodes = function(hashmap, reHashMap, hash) {
           target = target.nextNode
         
         } 
+        //got to the end of the loop, still the last node to go
         let index = hash(target.nodeKey)
         reHashMap[index] = target
       }
@@ -253,13 +260,8 @@ const insertNodes = function(hashmap, reHashMap, hash) {
 }*/
 
 const test = new hashMap()
-/* test.set('elppa', 'red')
-test.set('apple', 'red')
-test.set('apple', 'yellow')
-test.set('leapp', 'red')
-console.log(test.keys())
-console.log(test.values())
-console.log(test.entries()) */
+
+
 
 test.set('apple', 'red')
 test.set('banana', 'yellow')
@@ -274,6 +276,18 @@ test.set('jacket', 'blue')
 test.set('kite', 'pink')
 test.set('lion', 'golden')
 
+test.set('grape', 'asdasd')
+test.set('carrot', 'hjgjh')
+test.set('banana', 'hjgjh')
+
 test.set('moon', 'silver')
 
+console.log(test.get('ice cream'))
 console.log(test.has('hat'))
+//console.log(test.has('elephant'))
+
+console.log(test.length())
+console.log(test.remove('elephant'))
+
+
+console.log(test.entries())
